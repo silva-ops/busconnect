@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BusConnect - Passageiro</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="tela-login" class="overlay-login">
+    <div class="login-box">
+      <div class="login-marca">BusConnect</div>
+      <div class="login-sub">Acesso do Passageiro</div>
+
+      <form id="form-login" autocomplete="on">
+        <label class="login-label">E-mail</label>
+        <input id="login-email" type="email" placeholder="passageiro@busconnect.com" required autofocus />
+
+        <label class="login-label">Senha</label>
+        <input id="login-senha" type="password" placeholder="Sua senha" required />
+
+        <div id="login-erro" class="login-erro"></div>
+
+        <button type="submit" class="btn-login">ENTRAR</button>
+      </form>
+
+      <div class="login-hint">
+        Teste: <b>passageiro@busconnect.com</b> / <b>senha123</b>
+      </div>
+    </div>
+  </div>
+
+
+  <button id="btn-logout" class="btn-logout-flutuante" title="Sair">Sair</button>
+
+  <section id="tela-inicio" class="tela ativa">
+    <div class="marca-grande">BusConnect</div>
+    <h1 class="pergunta">Para onde você quer ir?</h1>
+    <input id="input-destino" type="text" placeholder="Digite seu destino..." autocomplete="off" />
+    <ul id="sugestoes" class="sugestoes"></ul>
+    <button id="btn-encontrar" class="btn-primario" disabled>ENCONTRAR ÔNIBUS</button>
+  </section>
+
+  <section id="tela-recomendado" class="tela">
+    <div class="marca-pequena">BusConnect</div>
+    <h2 class="titulo-tela">Ônibus recomendado</h2>
+    <div class="card-info">
+      <div class="linha-info"><span>Linha</span><strong id="rec-linha">—</strong></div>
+      <div class="linha-info"><span>Ônibus</span><strong id="rec-onibus">—</strong></div>
+      <div class="linha-info"><span>Destino</span><strong id="rec-destino">—</strong></div>
+      <div class="linha-info"><span>Embarque</span><strong id="rec-embarque">—</strong></div>
+      <div class="linha-info"><span>Previsão</span><strong id="rec-previsao">—</strong></div>
+    </div>
+    <button id="btn-embarcar" class="btn-primario">EMBARCAR</button>
+    <button id="btn-voltar" class="btn-secundario">← Escolher outro destino</button>
+  </section>
+
+  <section id="tela-viagem" class="tela">
+    <div class="marca-pequena">VIAGEM EM ANDAMENTO</div>
+    <div class="card-info">
+      <div class="linha-info"><span>Linha</span><strong id="via-linha">—</strong></div>
+      <div class="linha-info"><span>Destino</span><strong id="via-destino"">—</strong></div>
+      <div class="linha-info"><span>Próximo ponto</span><strong id="via-proximo">—</strong></div>
+      <div class="linha-info"><span>Faltam</span><strong id="via-faltam">—</strong></div>
+    </div>    <div id="mapa-viagem"></div>
+
+
+    <div class="barra-progresso">
+      <div id="progresso-preenchido" class="progresso-preenchido"></div>
+    </div>
+    <p class="info-auto">O sistema está acompanhando sua viagem automaticamente.</p>
+  </section>
+
+  <section id="tela-aproximando" class="tela tela-aproximando">
+    <div class="icone-grande">&#9888;&#65039;</div>
+    <h2 class="titulo-aproximando">ATENÇÃO</h2>
+    <p class="texto-aproximando">Seu destino está próximo.</p>
+    <p class="texto-aproximando-sub">Prepare-se para desembarcar.</p>
+  </section>
+
+  <section id="tela-chegou" class="tela tela-chegou">
+    <div class="card-chegou">
+      <div class="titulo-chegou">VOCÊ CHEGOU</div>
+      <div id="chegou-ponto" class="ponto-chegou">—</div>
+      <div class="msg-chegou">Até a próxima!</div>
+    </div>
+    <button id="btn-nova-viagem" class="btn-primario">Nova viagem</button>
+  </section>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

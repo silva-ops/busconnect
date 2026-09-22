@@ -1,0 +1,344 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  min-height: 100vh;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #1e293b;
+  border-bottom: 2px solid #334155;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.marca {
+  font-weight: 800;
+  font-size: 22px;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+
+.identificacao {
+  display: flex;
+  gap: 16px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+#linha { color: #a78bfa; }
+#onibus { color: #fbbf24; }
+
+.status {
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #7f1d1d;
+  color: #fecaca;
+  font-weight: 600;
+}
+.status.ok { background: #14532d; color: #bbf7d0; }
+
+main {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.proxima-parada {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+  border: 3px solid #334155;
+  transition: background 0.3s, border-color 0.3s, transform 0.2s;
+}
+
+.proxima-parada .titulo {
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: #94a3b8;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.proxima-parada .nome-ponto {
+  font-size: 34px;
+  font-weight: 800;
+  color: #f1f5f9;
+  line-height: 1.15;
+}
+
+.proxima-parada .info-passageiros {
+  margin-top: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.proxima-parada.aproximando {
+  background: #422006;
+  border-color: #f59e0b;
+}
+.proxima-parada.aproximando .nome-ponto { color: #fbbf24; }
+.proxima-parada.aproximando .info-passageiros { color: #fdba74; }
+
+.proxima-parada.aviso {
+  background: #14532d;
+  border-color: #22c55e;
+  animation: piscar 1.2s ease-in-out 3;
+}
+.proxima-parada.aviso .info-passageiros { color: #bbf7d0; }
+
+@keyframes piscar {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  50%      { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(34,197,94,0.25); }
+}
+
+.info-viagem {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.info-viagem > div {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid #334155;
+}
+
+.label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #94a3b8;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.valor {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.valor.pequeno {
+  font-size: 13px;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+.historico {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid #334155;
+}
+
+#historico-lista {
+  list-style: none;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#historico-lista li {
+  font-size: 13px;
+  color: #cbd5e1;
+  padding: 6px 10px;
+  background: #0f172a;
+  border-radius: 6px;
+  border-left: 3px solid #38bdf8;
+}
+
+#historico-lista li.destaque {
+  border-left-color: #22c55e;
+  color: #bbf7d0;
+}
+
+/* ===== Mapa ===== */
+.mapa-bloco {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid #334155;
+}
+
+#mapa-motorista {
+  height: 340px;
+  margin-top: 8px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #334155;
+}
+
+.marcador-onibus {
+  background: #38bdf8;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(56,189,248,0.7);
+  animation: pulsar 1.5s ease-in-out infinite;
+}
+@keyframes pulsar {
+  0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(56,189,248,0.7); }
+  50%      { transform: scale(1.1); box-shadow: 0 2px 20px rgba(56,189,248,1); }
+}
+
+.marcador-ponto {
+  background: #94a3b8;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+}
+
+.marcador-destino {
+  background: #22c55e;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  box-shadow: 0 2px 12px rgba(34,197,94,0.8);
+  animation: pulsarVerde 1.2s ease-in-out infinite;
+}
+@keyframes pulsarVerde {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.15); }
+}
+
+
+/* ===== Tela de Login (overlay) ===== */
+.overlay-login {
+  position: fixed;
+  inset: 0;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.overlay-login.escondido { display: none; }
+
+.login-box {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.login-marca {
+  font-size: 28px;
+  font-weight: 800;
+  color: #38bdf8;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  letter-spacing: 2px;
+  margin-bottom: 28px;
+  text-transform: uppercase;
+}
+.login-label {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+#login-email, #login-senha {
+  width: 100%;
+  padding: 12px 14px;
+  background: #0f172a;
+  border: 2px solid #334155;
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#login-email:focus, #login-senha:focus { border-color: #38bdf8; }
+
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  background: #38bdf8;
+  color: #0f172a;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.btn-login:active { transform: scale(0.98); }
+.btn-login:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+
+.login-erro {
+  color: #f87171;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 12px;
+  min-height: 18px;
+}
+.login-hint {
+  color: #475569;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #334155;
+}
+.login-hint b { color: #94a3b8; }
+
+/* Header right */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.usuario-logado {
+  font-size: 13px;
+  color: #94a3b8;
+}
+.btn-logout {
+  background: #7f1d1d;
+  color: #fecaca;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+.btn-logout:hover { background: #991b1b; }

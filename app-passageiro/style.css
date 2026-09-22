@@ -1,0 +1,381 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.tela {
+  display: none;
+  min-height: 100vh;
+  padding: 28px 22px;
+  flex-direction: column;
+}
+.tela.ativa { display: flex; }
+
+.marca-grande {
+  font-size: 32px;
+  font-weight: 800;
+  color: #38bdf8;
+  text-align: center;
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.marca-pequena {
+  font-size: 14px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 3px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.pergunta {
+  font-size: 24px;
+  text-align: center;
+  color: #f1f5f9;
+  margin-bottom: 28px;
+  line-height: 1.3;
+}
+
+input {
+  width: 100%;
+  padding: 16px 18px;
+  font-size: 17px;
+  background: #1e293b;
+  border: 2px solid #334155;
+  border-radius: 12px;
+  color: #f1f5f9;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus { border-color: #38bdf8; }
+
+.sugestoes {
+  list-style: none;
+  background: #1e293b;
+  border-radius: 12px;
+  margin-top: 8px;
+  overflow: hidden;
+  border: 1px solid #334155;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.sugestoes:empty { display: none; }
+.sugestoes li {
+  padding: 14px 18px;
+  cursor: pointer;
+  border-bottom: 1px solid #334155;
+  font-size: 16px;
+}
+.sugestoes li:last-child { border-bottom: none; }
+.sugestoes li:hover, .sugestoes li.selecionado {
+  background: #334155;
+  color: #38bdf8;
+}
+
+.btn-primario {
+  width: 100%;
+  padding: 18px;
+  margin-top: 20px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  background: #38bdf8;
+  color: #0f172a;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.btn-primario:active { transform: scale(0.98); }
+.btn-primario:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+
+.btn-secundario {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.titulo-tela {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #f1f5f9;
+}
+
+.card-info {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 10px;
+}
+
+.linha-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #334155;
+  font-size: 15px;
+}
+.linha-info:last-child { border-bottom: none; }
+.linha-info span { color: #94a3b8; font-weight: 500; }
+.linha-info strong { color: #f1f5f9; font-weight: 700; font-size: 16px; }
+
+.barra-progresso {
+  height: 10px;
+  background: #1e293b;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 24px;
+  border: 1px solid #334155;
+}
+.progresso-preenchido {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8, #22c55e);
+  transition: width 0.4s ease;
+}
+
+.info-auto {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+  margin-top: 20px;
+  line-height: 1.5;
+}
+
+.tela-aproximando {
+  background: #422006;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.icone-grande { font-size: 80px; margin-bottom: 20px; }
+.titulo-aproximando {
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: #fbbf24;
+  margin-bottom: 24px;
+}
+.texto-aproximando {
+  font-size: 22px;
+  color: #fdba74;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.texto-aproximando-sub { font-size: 18px; color: #fde68a; }
+
+.tela-chegou {
+  background: #052e16;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.card-chegou {
+  background: #14532d;
+  border: 4px solid #22c55e;
+  border-radius: 20px;
+  padding: 50px 40px;
+  max-width: 420px;
+  box-shadow: 0 0 60px rgba(34,197,94,0.4);
+  animation: entrar 0.6s ease-out;
+}
+.titulo-chegou {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #bbf7d0;
+  margin-bottom: 24px;
+}
+.ponto-chegou {
+  font-size: 28px;
+  font-weight: 800;
+  color: #f1f5f9;
+  margin-bottom: 24px;
+}
+.msg-chegou { font-size: 18px; color: #86efac; font-style: italic; }
+
+@keyframes entrar {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 480px) {
+  .marca-grande { font-size: 26px; margin-top: 20px; }
+  .pergunta { font-size: 20px; }
+  .titulo-chegou { font-size: 28px; }
+  .ponto-chegou { font-size: 22px; }
+}
+/* Mapa */
+#mapa-viagem {
+  height: 320px;
+  margin-top: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #334155;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* Marcador customizado do onibus (circulo azul com emoji) */
+.marcador-onibus {
+  background: #38bdf8;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(56,189,248,0.7);
+  animation: pulsar 1.5s ease-in-out infinite;
+}
+@keyframes pulsar {
+  0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(56,189,248,0.7); }
+  50%      { transform: scale(1.1); box-shadow: 0 2px 20px rgba(56,189,248,1); }
+}
+
+.marcador-destino {
+  background: #22c55e;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(34,197,94,0.7);
+}
+
+.marcador-ponto {
+  background: #94a3b8;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== Tela de Login (overlay) ===== */
+.overlay-login {
+  position: fixed;
+  inset: 0;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+.overlay-login.escondido { display: none; }
+
+.login-box {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 36px 30px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.login-marca {
+  font-size: 28px;
+  font-weight: 800;
+  color: #38bdf8;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  letter-spacing: 2px;
+  margin-bottom: 26px;
+  text-transform: uppercase;
+}
+.login-label {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+#login-email, #login-senha {
+  width: 100%;
+  padding: 12px 14px;
+  background: #0f172a;
+  border: 2px solid #334155;
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#login-email:focus, #login-senha:focus { border-color: #38bdf8; }
+
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  background: #38bdf8;
+  color: #0f172a;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.btn-login:active { transform: scale(0.98); }
+.btn-login:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+
+.login-erro {
+  color: #f87171;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 12px;
+  min-height: 18px;
+}
+.login-hint {
+  color: #475569;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #334155;
+}
+.login-hint b { color: #94a3b8; }
+
+/* Botao Sair flutuante na tela inicial */
+.btn-logout-flutuante {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: #7f1d1d;
+  color: #fecaca;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+  z-index: 100;
+}
+.btn-logout-flutuante:hover { background: #991b1b; }

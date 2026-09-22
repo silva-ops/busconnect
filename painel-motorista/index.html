@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BusConnect - Painel do Motorista</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="tela-login" class="overlay-login">
+    <div class="login-box">
+      <div class="login-marca">BusConnect</div>
+      <div class="login-sub">Painel do Motorista</div>
+
+      <form id="form-login" autocomplete="on">
+        <label class="login-label">E-mail</label>
+        <input id="login-email" type="email" placeholder="motorista@busconnect.com" required autofocus />
+
+        <label class="login-label">Senha</label>
+        <input id="login-senha" type="password" placeholder="Sua senha" required />
+
+        <div id="login-erro" class="login-erro"></div>
+
+        <button type="submit" class="btn-login">ENTRAR</button>
+      </form>
+
+      <div class="login-hint">
+        Usuário de teste: <b>motorista@busconnect.com</b> / <b>senha123</b>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <div class="marca">BusConnect</div>
+    <div class="identificacao">
+      <span id="linha">LINHA —</span>
+      <span id="onibus">ÔNIBUS —</span>
+    </div>
+    <div class="header-right">
+      <span id="usuario-logado" class="usuario-logado"></span>
+      <div class="status" id="status">Conectando...</div>
+      <button id="btn-logout" class="btn-logout" title="Sair">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="proxima-parada" id="proxima-parada">
+      <div class="titulo">PRÓXIMA PARADA</div>
+      <div class="nome-ponto" id="nome-ponto">Aguardando...</div>
+      <div class="info-passageiros" id="info-passageiros"></div>
+    </section>
+
+    <section class="info-viagem">
+      <div>
+        <div class="label">PONTO ATUAL</div>
+        <div class="valor" id="ponto-atual">—</div>
+      </div>
+      <div>
+        <div class="label">PASSAGEIROS ATIVOS</div>
+        <div class="valor" id="passageiros-ativos">—</div>
+      </div>
+      <div>
+        <div class="label">GPS</div>
+        <div class="valor pequeno" id="gps">—</div>
+      </div>
+    </section>
+
+    <section class="mapa-bloco">
+      <div class="label">MAPA DA ROTA</div>
+      <div id="mapa-motorista"></div>
+    </section>
+
+    <section class="historico">
+      <div class="label">ÚLTIMOS AVISOS</div>
+      <ul id="historico-lista"></ul>
+    </section>
+  </main>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

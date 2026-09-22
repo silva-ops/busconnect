@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BusConnect - Painel da Empresa</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="tela-login" class="overlay-login">
+    <div class="login-box">
+      <div class="login-marca">BusConnect</div>
+      <div class="login-sub">Painel da Empresa</div>
+
+      <form id="form-login" autocomplete="on">
+        <label class="login-label">E-mail</label>
+        <input id="login-email" type="email" placeholder="empresa@busconnect.com" required autofocus />
+
+        <label class="login-label">Senha</label>
+        <input id="login-senha" type="password" placeholder="Sua senha" required />
+
+        <div id="login-erro" class="login-erro"></div>
+
+        <button type="submit" class="btn-login">ENTRAR</button>
+      </form>
+
+      <div class="login-hint">
+        Usuário de teste: <b>empresa@busconnect.com</b> / <b>senha123</b>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <div class="marca">BusConnect <span class="marca-sub">Empresa</span></div>
+    <div class="header-right">
+      <span id="usuario-logado" class="usuario-logado"></span>
+      <div class="status" id="status">Conectando...</div>
+      <button id="btn-logout" class="btn-logout" title="Sair">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="kpis" id="kpis">
+      <div class="kpi">
+        <div class="kpi-label">ÔNIBUS EM OPERAÇíO</div>
+        <div class="kpi-valor" id="kpi-onibus">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">VIAGENS ATIVAS</div>
+        <div class="kpi-valor" id="kpi-viagens">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">PASSAGEIROS ATIVOS</div>
+        <div class="kpi-valor" id="kpi-passageiros">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">TRANSPORTADOS HOJE</div>
+        <div class="kpi-valor destaque" id="kpi-transportados">—</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">LINHAS CADASTRADAS</div>
+        <div class="kpi-valor" id="kpi-linhas">—</div>
+      </div>
+    </section>
+
+    <section class="bloco">
+      <h2>Mapa da frota <span class="badge-vivo">AO VIVO</span></h2>
+      <div id="mapa-empresa"></div>
+    </section>
+
+    <section class="bloco">
+      <h2>Viagens em andamento <span class="badge-vivo">AO VIVO</span></h2>
+      <div id="viagens-ativas" class="lista-viagens"></div>
+    </section>
+
+    <div class="grid-2">
+      <section class="bloco">
+        <h2>Estatísticas</h2>
+        <div class="stats">
+          <div class="stat-linha">
+            <span>Tempo médio de viagem</span>
+            <strong id="stat-tempo-medio">—</strong>
+          </div>
+          <div class="stat-linha">
+            <span>Total de passageiros finalizados</span>
+            <strong id="stat-total-finalizados">—</strong>
+          </div>
+        </div>
+
+        <div class="subtitulo">Pontos mais usados como destino</div>
+        <ul id="lista-pontos" class="lista-simples"></ul>
+
+        <div class="subtitulo">Passageiros por linha</div>
+        <ul id="lista-linhas-stats" class="lista-barras"></ul>
+      </section>
+
+      <section class="bloco">
+        <h2>Frota e estrutura</h2>
+
+        <div class="subtitulo">Ônibus</div>
+        <ul id="lista-onibus" class="lista-simples"></ul>
+
+        <div class="subtitulo">Linhas</div>
+        <ul id="lista-linhas" class="lista-simples"></ul>
+
+        <div class="subtitulo">Rotas</div>
+        <ul id="lista-rotas" class="lista-simples"></ul>
+
+        <div class="subtitulo">Pontos</div>
+        <ul id="lista-pontos-todos" class="lista-simples compacta"></ul>
+
+        <div class="subtitulo">Motoristas</div>
+        <ul id="lista-motoristas" class="lista-simples"></ul>
+      </section>
+    </div>
+
+    <section class="bloco">
+      <h2>Histórico de viagens</h2>
+      <table id="tabela-historico">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Linha</th>
+            <th>Ônibus</th>
+            <th>Início</th>
+            <th>Fim</th>
+            <th>Status</th>
+            <th>Passageiros</th>
+            <th>Chegaram</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
