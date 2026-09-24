@@ -235,8 +235,25 @@ async function carregarOnibusAtivos() {
 
 function atualizarOnibusNoMapa(dados) {
   if (!mapaEmpresa) return;
-  const m = marcadoresOnibus.get(dados.viagem_id);
-  if (m) m.setLatLng([dados.latitude, dados.longitude]);
+  const viagemId = dados.viagem_id;
+
+  if (marcadoresOnibus.has(viagemId)) {
+    const m = marcadoresOnibus.get(viagemId);
+    m.setLatLng([dados.latitude, dados.longitude]);
+  } else {
+    // Cria o marcador na hora se ainda nao existia
+    const icone = L.divIcon({
+      className: '',
+      html: '<div class="marcador-onibus-emp">&#128652;</div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+    });
+    const marker = L.marker([dados.latitude, dados.longitude], {
+      icon: icone,
+      zIndexOffset: 1000,
+    }).addTo(mapaEmpresa).bindPopup('Viagem #' + viagemId);
+    marcadoresOnibus.set(viagemId, marker);
+  }
 }
 
 async function carregarResumo() {
