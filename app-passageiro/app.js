@@ -124,6 +124,12 @@ elFormLogin.addEventListener('submit', async (e) => {
     localStorage.setItem('busconnect_usuario_pass', JSON.stringify(usuarioAtual));
 
     esconderLogin();
+    embarcou = false;
+    mostrarTela('inicio');
+    inputDestino.value = '';
+    sugestoes.innerHTML = '';
+    destinoSelecionado = null;
+    btnEncontrar.disabled = true;
     carregarPontos();
   } catch (err) {
     elLoginErro.textContent = 'Erro de conexao: ' + err.message;
@@ -135,7 +141,12 @@ elFormLogin.addEventListener('submit', async (e) => {
 
 elLogout.addEventListener('click', () => {
   if (socket) { socket.disconnect(); socket = null; }
+  embarcou = false;
+  destinoSelecionado = null;
+  pontosRota = [];
+  if (mapa) { mapa.remove(); mapa = null; }
   limparSessao();
+  mostrarTela('inicio');
   mostrarLogin();
   document.getElementById('login-senha').value = '';
 });
@@ -369,3 +380,11 @@ if (authToken) {
 } else {
   mostrarLogin();
 }
+// Esconder a splash screen apos 2 segundos
+setTimeout(() => {
+  const splash = document.getElementById('splash');
+  if (splash) {
+    splash.classList.add('escondido');
+    setTimeout(() => splash.remove(), 700);
+  }
+}, 2000);

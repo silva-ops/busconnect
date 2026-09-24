@@ -342,3 +342,55 @@ main {
   letter-spacing: 1px;
 }
 .btn-logout:hover { background: #991b1b; }
+
+
+/* Logo */
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.marca .logo-svg {
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+.marca > span:first-of-type {
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+
+/* ===== Animacoes e Transicoes ===== */
+/* Fade-in suave ao trocar de tela */
+.tela {
+  animation: fadeInTela 0.4s ease-out;
+}
+@keyframes fadeInTela {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Hover mais suave nos botoes */
+.btn-primario {
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.btn-primario:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Fade-in ao carregar listas */
+.card-info,
+.lista-simples li,
+#historico-lista li {
+  animation: fadeInItem 0.3s ease-out;
+}
+@keyframes fadeInItem {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Scroll suave */
+html {
+  scroll-behavior: smooth;
+}
