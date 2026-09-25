@@ -243,6 +243,7 @@ btnEmbarcar.onclick = async () => {
     }
 
     embarcou = true;
+    pedirPermissaoNotificacao();
     conectarWebSocket();
 
     document.getElementById('via-linha').textContent = document.getElementById('rec-linha').textContent;
@@ -345,12 +346,14 @@ function conectarWebSocket() {
   socket.on('passageiro:destino_proximo', (d) => {
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
+    mostrarNotificacao("⚠️ ATENÇÃO", "Seu destino está próximo. Prepare-se para desembarcar.");
     mostrarTela('aproximando');
   });
 
   socket.on('passageiro:chegou', (d) => {
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
+    mostrarNotificacao("🎉 VOCÊ CHEGOU", (d.ponto_nome || "Destino alcançado") + " — Boa viagem!");
     document.getElementById('chegou-ponto').textContent = d.ponto_nome || destinoSelecionado.nome;
     mostrarTela('chegou');
     embarcou = false;
@@ -373,6 +376,42 @@ btnNovaViagem.onclick = () => {
   btnEncontrar.disabled = true;
   mostrarTela('inicio');
 };
+
+
+
+// ===== NOTIFICACOES =====
+function pedirPermissaoNotificacao() {
+  if (!('Notification' in window)) {
+    console.log('Navegador nao suporta notificacoes.');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    console.log('Notificacoes ja autorizadas.');
+    return;
+  }
+  if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then((perm) => {
+      console.log('Permissao de notificacao: ' + perm);
+    });
+  }
+}
+
+function mostrarNotificacao(titulo, corpo, icone) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(titulo, {
+      body: corpo,
+      icon: icone || 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2722%27 fill=%27%230f172a%27/%3E%3Crect x=%2722%27 y=%2728%27 width=%2756%27 height=%2744%27 rx=%276%27 fill=%27none%27 stroke=%27%2338bdf8%27 stroke-width=%276%27/%3E%3Ccircle cx=%2738%27 cy=%2780%27 r=%276%27 fill=%27%2338bdf8%27/%3E%3Ccircle cx=%2762%27 cy=%2780%27 r=%276%27 fill=%27%2338bdf8%27/%3E%3C/svg%3E',
+      tag: 'busconnect-aviso',
+      renotify: true,
+    });
+    n.onclick = () => { window.focus(); n.close(); };
+    setTimeout(() => n.close(), 10000);
+  } catch (e) {
+    console.error('Erro ao mostrar notificacao:', e);
+  }
+}
 
 // ===== Inicializacao =====
 if (authToken) {
