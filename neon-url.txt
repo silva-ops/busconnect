@@ -1,1 +1,1 @@
-postgresql://neondb_owner:npg_PnFafUds1cJ8@ep-rapid-brook-b5dfwd0v-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require
+postgresql://neondb_owner:npg_56iKAFQehgCD@ep-rapid-brook-b5dfwd0v-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require
