@@ -57,6 +57,7 @@
     <input id="input-destino" type="text" placeholder="Digite seu destino..." autocomplete="off" />
     <ul id="sugestoes" class="sugestoes"></ul>
     <button id="btn-encontrar" class="btn-primario" disabled>ENCONTRAR ÔNIBUS</button>
+    <button id="btn-historico" class="btn-secundario">📊 Ver histórico de viagens</button>
   </section>
 
   <section id="tela-recomendado" class="tela">
@@ -87,6 +88,22 @@
       <div id="progresso-preenchido" class="progresso-preenchido"></div>
     </div>
     <p class="info-auto">O sistema está acompanhando sua viagem automaticamente.</p>
+  </section>
+
+  
+  <section id="tela-historico" class="tela">
+    <div class="marca-pequena">HISTÓRICO</div>
+
+    <div class="card-info" id="historico-stats">
+      <div class="linha-info"><span>Total de viagens</span><strong id="stat-total">—</strong></div>
+      <div class="linha-info"><span>Tempo total em ônibus</span><strong id="stat-tempo">—</strong></div>
+      <div class="linha-info"><span>Destino favorito</span><strong id="stat-favorito">—</strong></div>
+    </div>
+
+    <div class="marca-pequena" style="margin-top: 24px;">Suas viagens</div>
+    <ul id="lista-historico" class="lista-historico"></ul>
+
+    <button id="btn-voltar-inicio" class="btn-secundario">← Voltar ao início</button>
   </section>
 
   <section id="tela-aproximando" class="tela tela-aproximando">
