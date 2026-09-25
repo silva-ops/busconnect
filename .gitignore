@@ -7,6 +7,22 @@ package-lock.json
 .env.local
 .env.*.local
 
+# Arquivos sensiveis (contem senhas!)
+neon-url.txt
+*.secrets
+secrets.json
+
+# Scripts auxiliares de desenvolvimento (nao fazem parte do produto)
+add-*.js
+corrigir-*.js
+patch-*.js
+fix-*.js
+ajustar-*.js
+criar-*.js
+adicionar-*.js
+update-*.js
+seed-multi.sql
+
 # Logs
 *.log
 npm-debug.log*
