@@ -222,6 +222,11 @@ btnVoltar.onclick = () => {
 };
 
 // ===== Embarcar =====
+// Gesto do usuario para destravar audio
+btnEmbarcar.addEventListener('click', () => {
+  inicializarAudio();
+}, { once: false });
+
 btnEmbarcar.onclick = async () => {
   btnEmbarcar.disabled = true;
   btnEmbarcar.textContent = 'EMBARCANDO...';
@@ -246,6 +251,7 @@ btnEmbarcar.onclick = async () => {
     pedirPermissaoNotificacao();
     inicializarAudio();
     conectarWebSocket();
+    console.log('[DEBUG-BC] embarcou, aguardando eventos...');
 
     document.getElementById('via-linha').textContent = document.getElementById('rec-linha').textContent;
     document.getElementById('via-destino').textContent = destinoSelecionado.nome;
@@ -345,6 +351,7 @@ function conectarWebSocket() {
   });
 
   socket.on('passageiro:destino_proximo', (d) => {
+    console.log('[DEBUG-BC] destino_proximo recebido', JSON.stringify(d));
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
     tocarSomAviso("atencao");
@@ -353,6 +360,7 @@ function conectarWebSocket() {
   });
 
   socket.on('passageiro:chegou', (d) => {
+    console.log('[DEBUG-BC] chegou recebido', JSON.stringify(d));
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
     tocarSomAviso("chegou");
@@ -422,12 +430,23 @@ function mostrarNotificacao(titulo, corpo, icone) {
 let audioCtx = null;
 
 function inicializarAudio() {
-  if (audioCtx) return;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    console.log('AudioContext criado. Estado:', audioCtx.state);
-  } catch (e) {
-    console.error('Erro ao criar AudioContext:', e);
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      console.log('AudioContext criado.');
+    } catch (e) {
+      console.error('Erro ao criar AudioContext:', e);
+      return;
+    }
+  }
+  // Em mobile, o contexto nasce 'suspended'. Precisamos chamar resume()
+  // DENTRO de um gesto do usuario (clique, toque, etc).
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().then(() => {
+      console.log('AudioContext ativado:', audioCtx.state);
+    }).catch((e) => console.error('Erro resume:', e));
+  } else {
+    console.log('AudioContext estado:', audioCtx.state);
   }
 }
 
@@ -437,9 +456,7 @@ function tocarSomAviso(tipo) {
   if (!audioCtx) return;
 
   // Mobile as vezes precisa retomar o contexto
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
 
   const notas = tipo === 'chegou'
     ? [523, 659, 784]         // C5, E5, G5 (alegre)
