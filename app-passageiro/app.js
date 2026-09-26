@@ -244,6 +244,7 @@ btnEmbarcar.onclick = async () => {
 
     embarcou = true;
     pedirPermissaoNotificacao();
+    inicializarAudio();
     conectarWebSocket();
 
     document.getElementById('via-linha').textContent = document.getElementById('rec-linha').textContent;
@@ -346,14 +347,16 @@ function conectarWebSocket() {
   socket.on('passageiro:destino_proximo', (d) => {
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
-    mostrarNotificacao("⚠️ ATENÇÃO", "Seu destino está próximo. Prepare-se para desembarcar.");
+    tocarSomAviso("atencao");
+      mostrarNotificacao("⚠️ ATENÇÃO", "Seu destino está próximo. Prepare-se para desembarcar.");
     mostrarTela('aproximando');
   });
 
   socket.on('passageiro:chegou', (d) => {
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
-    mostrarNotificacao("🎉 VOCÊ CHEGOU", (d.ponto_nome || "Destino alcançado") + " — Boa viagem!");
+    tocarSomAviso("chegou");
+      mostrarNotificacao("🎉 VOCÊ CHEGOU", (d.ponto_nome || "Destino alcançado") + " — Boa viagem!");
     document.getElementById('chegou-ponto').textContent = d.ponto_nome || destinoSelecionado.nome;
     mostrarTela('chegou');
     embarcou = false;
@@ -411,6 +414,59 @@ function mostrarNotificacao(titulo, corpo, icone) {
   } catch (e) {
     console.error('Erro ao mostrar notificacao:', e);
   }
+}
+
+
+
+// ===== SOM (Web Audio API) =====
+let audioCtx = null;
+
+function inicializarAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    console.log('AudioContext criado. Estado:', audioCtx.state);
+  } catch (e) {
+    console.error('Erro ao criar AudioContext:', e);
+  }
+}
+
+function tocarSomAviso(tipo) {
+  // tipo: 'atencao' (dois bipes medios) ou 'chegou' (tres bipes alegres)
+  if (!audioCtx) inicializarAudio();
+  if (!audioCtx) return;
+
+  // Mobile as vezes precisa retomar o contexto
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+
+  const notas = tipo === 'chegou'
+    ? [523, 659, 784]         // C5, E5, G5 (alegre)
+    : [440, 440];              // A4, A4 (atencao)
+
+  let delay = 0;
+  notas.forEach((freq) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    const startTime = audioCtx.currentTime + delay;
+    const duracao = tipo === 'chegou' ? 0.25 : 0.35;
+
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(0.4, startTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duracao);
+
+    osc.start(startTime);
+    osc.stop(startTime + duracao + 0.05);
+
+    delay += duracao + 0.1;
+  });
 }
 
 // ===== Inicializacao =====
