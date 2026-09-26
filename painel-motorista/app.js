@@ -118,6 +118,9 @@ elFormLogin.addEventListener('submit', async (e) => {
   }
 });
 
+document.body.addEventListener('click', () => { inicializarAudioMotorista(); }, { once: true });
+document.body.addEventListener('touchstart', () => { inicializarAudioMotorista(); }, { once: true });
+
 elLogout.addEventListener('click', () => {
   limparSessao();
   mostrarLogin();
@@ -264,11 +267,88 @@ socket.on('motorista:aviso_desembarque', (d) => {
   elProxima.classList.remove('aproximando');
   elProxima.classList.add('aviso');
   setTimeout(() => elProxima.classList.remove('aviso'), 6000);
+  tocarSomMotorista();
+  mostrarNotifMotorista('🔔 PRÓXIMA PARADA', d.ponto_nome + ' — ' + d.passageiros + ' passageiro(s) desembarcam');
   log('PROXIMA PARADA: ' + d.ponto_nome + ' - ' + d.passageiros + ' passageiro(s)', true);
   marcarDestino(d.ponto_id);
 });
 
 // ===== Inicialização =====
+
+
+// ===== SOM E NOTIFICACOES (motorista) =====
+let audioCtxMot = null;
+
+function inicializarAudioMotorista() {
+  if (!audioCtxMot) {
+    try {
+      audioCtxMot = new (window.AudioContext || window.webkitAudioContext)();
+      console.log('AudioContext (motorista) criado.');
+    } catch (e) {
+      console.error('Erro ao criar AudioContext:', e);
+      return;
+    }
+  }
+  if (audioCtxMot.state === 'suspended') {
+    audioCtxMot.resume().then(() => console.log('AudioContext (mot) ativo:', audioCtxMot.state));
+  }
+}
+
+function tocarSomMotorista() {
+  if (!audioCtxMot) inicializarAudioMotorista();
+  if (!audioCtxMot) return;
+  if (audioCtxMot.state === 'suspended') audioCtxMot.resume();
+
+  const notas = [660, 880, 1100];
+  let delay = 0;
+  notas.forEach((freq) => {
+    const osc = audioCtxMot.createOscillator();
+    const gain = audioCtxMot.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtxMot.destination);
+    osc.type = 'square';
+    osc.frequency.value = freq;
+
+    const t = audioCtxMot.currentTime + delay;
+    const dur = 0.18;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.3, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+    osc.start(t);
+    osc.stop(t + dur + 0.05);
+    delay += dur + 0.08;
+  });
+
+  if (navigator.vibrate) {
+    navigator.vibrate([200, 100, 200, 100, 200]);
+  }
+}
+
+function pedirPermissaoNotifMotorista() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') return;
+  if (Notification.permission !== 'denied') {
+    Notification.requestPermission();
+  }
+}
+
+function mostrarNotifMotorista(titulo, corpo) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(titulo, {
+      body: corpo,
+      tag: 'motorista-parada',
+      renotify: true,
+    });
+    n.onclick = () => { window.focus(); n.close(); };
+    setTimeout(() => n.close(), 12000);
+  } catch (e) {
+    console.error('Erro notif motorista:', e);
+  }
+}
+
 if (authToken) {
   esconderLogin();
   carregarDadosViagem();
