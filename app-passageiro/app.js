@@ -433,58 +433,61 @@ function inicializarAudio() {
   if (!audioCtx) {
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      console.log('AudioContext criado.');
+      console.log('[audio] criado');
     } catch (e) {
-      console.error('Erro ao criar AudioContext:', e);
+      console.error('[audio] erro criar:', e);
       return;
     }
   }
-  // Em mobile, o contexto nasce 'suspended'. Precisamos chamar resume()
-  // DENTRO de um gesto do usuario (clique, toque, etc).
   if (audioCtx.state === 'suspended') {
-    audioCtx.resume().then(() => {
-      console.log('AudioContext ativado:', audioCtx.state);
-    }).catch((e) => console.error('Erro resume:', e));
-  } else {
-    console.log('AudioContext estado:', audioCtx.state);
+    audioCtx.resume();
   }
-}
-
-function tocarSomAviso(tipo) {
-  // tipo: 'atencao' (dois bipes medios) ou 'chegou' (tres bipes alegres)
-  if (!audioCtx) inicializarAudio();
-  if (!audioCtx) return;
-
-  // Mobile as vezes precisa retomar o contexto
-  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-
-  const notas = tipo === 'chegou'
-    ? [523, 659, 784]         // C5, E5, G5 (alegre)
-    : [440, 440];              // A4, A4 (atencao)
-
-  let delay = 0;
-  notas.forEach((freq) => {
+  // Toca um som inaudivel sincronamente para destravar (iOS/Android)
+  try {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
+    gain.gain.value = 0.001; // praticamente inaudivel
+    osc.start(0);
+    osc.stop(audioCtx.currentTime + 0.01);
+  } catch (e) {}
+  console.log('[audio] estado:', audioCtx.state);
+}
 
+function tocarSomAviso(tipo) {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const notas = tipo === 'chegou' ? [523, 659, 784] : [440, 440];
+  let delay = 0;
+
+  notas.forEach(function(freq) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
     osc.type = 'sine';
     osc.frequency.value = freq;
 
-    const startTime = audioCtx.currentTime + delay;
-    const duracao = tipo === 'chegou' ? 0.25 : 0.35;
+    const t = audioCtx.currentTime + delay;
+    const dur = tipo === 'chegou' ? 0.3 : 0.4;
 
-    gain.gain.setValueAtTime(0, startTime);
-    gain.gain.linearRampToValueAtTime(0.4, startTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duracao);
+    // Gain mais alto: 0.8 (era 0.4)
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.8, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
 
-    osc.start(startTime);
-    osc.stop(startTime + duracao + 0.05);
-
-    delay += duracao + 0.1;
+    osc.start(t);
+    osc.stop(t + dur + 0.05);
+    delay += dur + 0.12;
   });
+
+  console.log('[audio] tocou som:', tipo, 'estado:', audioCtx.state);
 }
+// PATCH SOM v2
 
 // ===== Inicializacao =====
 if (authToken) {
