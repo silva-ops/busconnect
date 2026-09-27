@@ -461,32 +461,50 @@ function tocarSomAviso(tipo) {
   }
   if (audioCtx.state === 'suspended') audioCtx.resume();
 
-  const notas = tipo === 'chegou' ? [523, 659, 784] : [440, 440];
+  // Padrao mais agressivo e repetido
+  let notas;
+  if (tipo === 'chegou') {
+    // 4 bipes alegres + repete
+    notas = [880, 1100, 1320, 1568, 880, 1100, 1320, 1568];
+  } else {
+    // 3 bipes de atencao, tipo sirene
+    notas = [1000, 800, 1000, 800, 1000, 800];
+  }
+
   let delay = 0;
+  const dur = 0.18;
+  const pausa = 0.06;
 
   notas.forEach(function(freq) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    osc.type = 'sine';
+    osc.type = 'square';   // mais penetrante que sine
     osc.frequency.value = freq;
 
     const t = audioCtx.currentTime + delay;
-    const dur = tipo === 'chegou' ? 0.3 : 0.4;
-
-    // Gain mais alto: 0.8 (era 0.4)
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.8, t + 0.02);
+    gain.gain.linearRampToValueAtTime(1.0, t + 0.01);   // volume maximo
     gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
 
     osc.start(t);
-    osc.stop(t + dur + 0.05);
-    delay += dur + 0.12;
+    osc.stop(t + dur + 0.03);
+    delay += dur + pausa;
   });
 
-  console.log('[audio] tocou som:', tipo, 'estado:', audioCtx.state);
+  // Vibracao (Android suporta; iOS Safari nao)
+  if (navigator.vibrate) {
+    if (tipo === 'chegou') {
+      navigator.vibrate([300, 100, 300, 100, 300]);      // 3 vibracoes
+    } else {
+      navigator.vibrate([200, 100, 200]);                 // 2 vibracoes
+    }
+  }
+
+  console.log('[audio] tocou som:', tipo, 'estado:', audioCtx.state, 'notas:', notas.length);
 }
+// PATCH SOM v3
 // PATCH SOM v2
 
 // ===== Inicializacao =====

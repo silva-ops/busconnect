@@ -295,13 +295,18 @@ function inicializarAudioMotorista() {
 }
 
 function tocarSomMotorista() {
-  if (!audioCtxMot) inicializarAudioMotorista();
-  if (!audioCtxMot) return;
+  if (!audioCtxMot) {
+    try { audioCtxMot = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { return; }
+  }
   if (audioCtxMot.state === 'suspended') audioCtxMot.resume();
 
-  const notas = [660, 880, 1100];
+  // Padrao de campainha de onibus: 4 bipes altos
+  const notas = [1200, 1400, 1200, 1400, 1200, 1400];
   let delay = 0;
-  notas.forEach((freq) => {
+  const dur = 0.15;
+  const pausa = 0.05;
+
+  notas.forEach(function(freq) {
     const osc = audioCtxMot.createOscillator();
     const gain = audioCtxMot.createGain();
     osc.connect(gain);
@@ -310,20 +315,22 @@ function tocarSomMotorista() {
     osc.frequency.value = freq;
 
     const t = audioCtxMot.currentTime + delay;
-    const dur = 0.18;
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.3, t + 0.02);
+    gain.gain.linearRampToValueAtTime(1.0, t + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
 
     osc.start(t);
-    osc.stop(t + dur + 0.05);
-    delay += dur + 0.08;
+    osc.stop(t + dur + 0.03);
+    delay += dur + pausa;
   });
 
   if (navigator.vibrate) {
-    navigator.vibrate([200, 100, 200, 100, 200]);
+    navigator.vibrate([300, 100, 300, 100, 300, 100, 300]);
   }
+
+  console.log('[audio-mot] tocou som, estado:', audioCtxMot.state);
 }
+// PATCH SOM v3
 
 function pedirPermissaoNotifMotorista() {
   if (!('Notification' in window)) return;
