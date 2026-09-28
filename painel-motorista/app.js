@@ -268,7 +268,7 @@ socket.on('motorista:aviso_desembarque', (d) => {
   elProxima.classList.add('aviso');
   setTimeout(() => elProxima.classList.remove('aviso'), 6000);
   tocarSomMotorista();
-  mostrarNotifMotorista('🔔 PRÓXIMA PARADA', d.ponto_nome + ' — ' + d.passageiros + ' passageiro(s) desembarcam');
+  notificarViaSWMot('🔔 PRÓXIMA PARADA', d.ponto_nome + ' — ' + d.passageiros + ' passageiro(s) desembarcam', [400, 150, 400, 150, 400]);
   log('PROXIMA PARADA: ' + d.ponto_nome + ' - ' + d.passageiros + ' passageiro(s)', true);
   marcarDestino(d.ponto_id);
 });
@@ -355,6 +355,42 @@ function mostrarNotifMotorista(titulo, corpo) {
     console.error('Erro notif motorista:', e);
   }
 }
+
+
+
+// PATCH SW v1
+// ===== SERVICE WORKER (motorista) =====
+let swRegistrationMot = null;
+
+async function registrarServiceWorkerMot() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    swRegistrationMot = await navigator.serviceWorker.register('sw.js');
+    console.log('[sw-mot] registrado');
+  } catch (e) {
+    console.error('[sw-mot] erro:', e);
+  }
+}
+
+function notificarViaSWMot(titulo, corpo, vibrar) {
+  if (!swRegistrationMot || !swRegistrationMot.active) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try { new Notification(titulo, { body: corpo, vibrate: vibrar }); } catch(e) {}
+    }
+    if (navigator.vibrate) navigator.vibrate(vibrar || [300, 100, 300]);
+    return;
+  }
+  swRegistrationMot.active.postMessage({
+    tipo: 'notificar',
+    titulo: titulo,
+    corpo: corpo,
+    vibrar: vibrar || [300, 100, 300, 100, 300],
+    persistente: false,
+    tag: 'motorista-parada',
+  });
+}
+
+registrarServiceWorkerMot();
 
 if (authToken) {
   esconderLogin();

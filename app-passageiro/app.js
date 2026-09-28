@@ -355,7 +355,7 @@ function conectarWebSocket() {
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
     tocarSomAviso("atencao");
-      mostrarNotificacao("⚠️ ATENÇÃO", "Seu destino está próximo. Prepare-se para desembarcar.");
+      notificarViaSW("⚠️ ATENÇÃO", "Seu destino está próximo. Prepare-se para desembarcar.", [200, 100, 200], false);
     mostrarTela('aproximando');
   });
 
@@ -364,7 +364,7 @@ function conectarWebSocket() {
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
     tocarSomAviso("chegou");
-      mostrarNotificacao("🎉 VOCÊ CHEGOU", (d.ponto_nome || "Destino alcançado") + " — Boa viagem!");
+      notificarViaSW("🎉 VOCÊ CHEGOU", (d.ponto_nome || "Destino alcançado") + " — Boa viagem!", [400, 150, 400, 150, 400], true);
     document.getElementById('chegou-ponto').textContent = d.ponto_nome || destinoSelecionado.nome;
     mostrarTela('chegou');
     embarcou = false;
@@ -506,6 +506,49 @@ function tocarSomAviso(tipo) {
 }
 // PATCH SOM v3
 // PATCH SOM v2
+
+
+
+// PATCH SW v1
+// ===== SERVICE WORKER =====
+let swRegistration = null;
+
+async function registrarServiceWorker() {
+  if (!('serviceWorker' in navigator)) {
+    console.log('[sw] Service Worker nao suportado');
+    return;
+  }
+  try {
+    swRegistration = await navigator.serviceWorker.register('sw.js');
+    console.log('[sw] registrado, escopo:', swRegistration.scope);
+  } catch (e) {
+    console.error('[sw] erro ao registrar:', e);
+  }
+}
+
+function notificarViaSW(titulo, corpo, vibrar, persistente) {
+  if (!swRegistration || !swRegistration.active) {
+    // Fallback: notificacao normal
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(titulo, { body: corpo, vibrate: vibrar });
+      } catch(e) {}
+    }
+    if (navigator.vibrate) navigator.vibrate(vibrar || [300, 100, 300]);
+    return;
+  }
+  swRegistration.active.postMessage({
+    tipo: 'notificar',
+    titulo: titulo,
+    corpo: corpo,
+    vibrar: vibrar || [300, 100, 300],
+    persistente: persistente || false,
+    tag: 'busconnect-aviso',
+  });
+}
+
+// Registra o SW assim que o app carrega
+registrarServiceWorker();
 
 // ===== Inicializacao =====
 if (authToken) {
