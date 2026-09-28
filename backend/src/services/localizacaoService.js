@@ -1,6 +1,7 @@
 const pool = require('../database/pool');
 const { MotorViagem21 } = require('../motor/motorViagem21');
 const ws = require('../websocket/server');
+const pushService = require('./pushService');
 
 const motor = new MotorViagem21();
 const viagensCarregadas = new Set();
@@ -101,6 +102,44 @@ async function processarLocalizacao(payload) {
 
   for (const ev of resultado.eventos) {
     ws.emitirParaViagem(viagemId, ev.evento, ev);
+
+    // Envia Web Push (funciona mesmo com app fechado)
+    try {
+      if (ev.evento === 'passageiro:destino_proximo') {
+        pushService.enviarParaPassageiro(ev.passageiro_id, {
+          titulo: '⚠️ ATENÇÃO',
+          corpo: 'Seu destino está próximo. Prepare-se para desembarcar.',
+          vibrar: [200, 100, 200],
+          persistente: false,
+          url: '/',
+          tag: 'busconnect-aproximando',
+        }).catch((e) => console.error('[push] erro aprox:', e.message));
+      }
+
+      if (ev.evento === 'passageiro:chegou') {
+        pushService.enviarParaPassageiro(ev.passageiro_id, {
+          titulo: '🎉 VOCÊ CHEGOU',
+          corpo: (ev.ponto_nome || 'Destino alcançado') + ' — Boa viagem!',
+          vibrar: [400, 150, 400, 150, 400],
+          persistente: true,
+          url: '/',
+          tag: 'busconnect-chegou',
+        }).catch((e) => console.error('[push] erro chegou:', e.message));
+      }
+
+      if (ev.evento === 'motorista:aviso_desembarque') {
+        pushService.enviarParaMotoristas({
+          titulo: '🔔 PRÓXIMA PARADA',
+          corpo: ev.ponto_nome + ' — ' + ev.passageiros + ' passageiro(s) desembarcam',
+          vibrar: [400, 150, 400, 150, 400],
+          persistente: false,
+          url: '/',
+          tag: 'motorista-parada',
+        }).catch((e) => console.error('[push] erro mot:', e.message));
+      }
+    } catch (e) {
+      console.error('[push] erro geral:', e.message);
+    }
   }
 
   return resultado;

@@ -251,6 +251,7 @@ btnEmbarcar.onclick = async () => {
     pedirPermissaoNotificacao();
     inicializarAudio();
     conectarWebSocket();
+    if (window.registrarPush) { window.registrarPush(PASSAGEIRO_ID, VIAGEM_ID); }
     console.log('[DEBUG-BC] embarcou, aguardando eventos...');
 
     document.getElementById('via-linha').textContent = document.getElementById('rec-linha').textContent;
