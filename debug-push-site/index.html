@@ -33,6 +33,8 @@
   <button onclick="reRegistrar()" class="green">3. Re-registrar subscription</button>
   <button onclick="limparTudo()" class="danger">4. Limpar tudo (SW + sub + cache)</button>
   <button onclick="enviarPush()" class="green">5. Enviar push de teste</button>
+  <button id="btn-notif-local" onclick="notifLocal()" class="danger">6. Notificacao local (teste SW)</button>
+  <button onclick="notifLocalDelay()" class="danger">7. Notificacao local em 10s (feche o app!)</button>
 
   <div id="log">Aguardando...</div>
 
@@ -250,7 +252,45 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-// Roda diagnóstico ao abrir
+
+
+async function notifLocal() {
+  limparLog();
+  log('=== NOTIFICACAO LOCAL ===');
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    await reg.showNotification('🔔 Teste Local', {
+      body: 'Se voce esta vendo isso, o SW consegue mostrar notificacao.',
+      vibrate: [200, 100, 200],
+      tag: 'teste-local',
+      renotify: true,
+    });
+    log('SW showNotification chamado com sucesso', 'ok');
+    log('Feche o Chrome imediatamente para ver se aparece', 'aviso');
+  } catch (e) {
+    log('Erro: ' + e.message, 'erro');
+  }
+}
+
+async function notifLocalDelay() {
+  limparLog();
+  log('=== NOTIFICACAO EM 10 SEGUNDOS ===');
+  log('FECHE O CHROME AGORA (botao home ou power)');
+  log('A notificacao aparece em 10 segundos...', 'aviso');
+  setTimeout(async () => {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification('🔔 Teste com Delay', {
+        body: 'Se voce esta vendo isso, o SW funciona mesmo em background!',
+        vibrate: [200, 100, 200, 100, 200],
+        tag: 'teste-delay',
+        renotify: true,
+      });
+    } catch (e) {}
+  }, 10000);
+}
+
+// Roda diagnostico ao abrir
 diagnostico();
 </script>
 </body>
