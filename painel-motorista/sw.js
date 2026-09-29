@@ -10,21 +10,42 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('message', (event) => {
-  const data = event.data;
-  if (!data || data.tipo !== 'notificar') return;
+self.addEventListener('push', (event) => {
+  console.log('[sw-mot] push recebido');
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = { titulo: 'BusConnect', corpo: event.data ? event.data.text() : '' };
+  }
 
   const titulo = data.titulo || 'BusConnect';
-  const corpo = data.corpo || '';
+  const corpo = data.corpo || 'Nova notificacao';
   const vibrar = data.vibrar || [300, 100, 300, 100, 300];
 
-  self.registration.showNotification(titulo, {
+  event.waitUntil(self.registration.showNotification(titulo, {
     body: corpo,
     vibrate: vibrar,
     tag: data.tag || 'motorista-parada',
     renotify: true,
     requireInteraction: data.persistente || false,
     data: { url: data.url || '/' },
+    silent: false,
+  }));
+});
+
+self.addEventListener('message', (event) => {
+  const data = event.data;
+  if (!data || data.tipo !== 'notificar') return;
+
+  self.registration.showNotification(data.titulo || 'BusConnect', {
+    body: data.corpo || '',
+    vibrate: data.vibrar || [300, 100, 300, 100, 300],
+    tag: data.tag || 'motorista-parada',
+    renotify: true,
+    requireInteraction: data.persistente || false,
+    data: { url: data.url || '/' },
+    silent: false,
   });
 });
 
