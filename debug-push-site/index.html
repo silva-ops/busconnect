@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Debug Push - BusConnect</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, sans-serif; background: #0f172a; color: #f1f5f9; padding: 16px; font-size: 14px; }
+  h1 { font-size: 18px; margin-bottom: 12px; color: #38bdf8; }
+  button {
+    width: 100%; padding: 16px; margin: 6px 0; font-size: 15px; font-weight: 700;
+    background: #38bdf8; color: #0f172a; border: none; border-radius: 10px; cursor: pointer;
+  }
+  button.danger { background: #ef4444; color: white; }
+  button.green { background: #22c55e; color: white; }
+  #log {
+    margin-top: 16px; padding: 12px; background: #1e293b; border-radius: 10px;
+    font-family: monospace; font-size: 11px; white-space: pre-wrap;
+    max-height: 50vh; overflow-y: auto;
+  }
+  .linha { margin: 2px 0; }
+  .ok { color: #22c55e; }
+  .erro { color: #ef4444; }
+  .aviso { color: #fbbf24; }
+</style>
+</head>
+<body>
+  <h1>🔍 Debug Push - BusConnect</h1>
+
+  <button onclick="diagnostico()">1. Rodar diagnóstico</button>
+  <button onclick="forcarAtualizacao()" class="danger">2. Forçar atualização do SW</button>
+  <button onclick="reRegistrar()" class="green">3. Re-registrar subscription</button>
+  <button onclick="limparTudo()" class="danger">4. Limpar tudo (SW + sub + cache)</button>
+  <button onclick="enviarPush()" class="green">5. Enviar push de teste</button>
+
+  <div id="log">Aguardando...</div>
+
+<script>
+const API = 'https://busconnect-backend-dkk9.onrender.com';
+const PASSAGEIRO_ID = 10;
+
+function log(msg, tipo) {
+  const el = document.getElementById('log');
+  const cls = tipo === 'ok' ? 'ok' : (tipo === 'erro' ? 'erro' : (tipo === 'aviso' ? 'aviso' : ''));
+  el.innerHTML += '<div class="linha ' + cls + '">' + msg + '</div>';
+  el.scrollTop = el.scrollHeight;
+  console.log(msg);
+}
+
+function limparLog() {
+  document.getElementById('log').innerHTML = '';
+}
+
+async function diagnostico() {
+  limparLog();
+  log('=== DIAGNOSTICO ===');
+
+  // 1) Navegador
+  log('User agent: ' + navigator.userAgent.substring(0, 80));
+
+  // 2) SW suportado
+  log('Service Worker suportado? ' + ('serviceWorker' in navigator));
+  log('PushManager suportado? ' + ('PushManager' in window));
+
+  // 3) Permissão
+  log('Notification.permission: ' + Notification.permission);
+
+  // 4) SW registration
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    log('SW registrations: ' + regs.length);
+    for (const r of regs) {
+      log('  scope: ' + r.scope);
+      log('  active: ' + (r.active ? r.active.scriptURL : 'nao'));
+      log('  installing: ' + (r.installing ? 'sim' : 'nao'));
+      log('  waiting: ' + (r.waiting ? 'sim' : 'nao'));
+    }
+  } catch (e) {
+    log('Erro getRegistrations: ' + e.message, 'erro');
+  }
+
+  // 5) Subscription
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      log('Subscription ativa: SIM', 'ok');
+      log('  endpoint: ' + sub.endpoint.substring(0, 60) + '...');
+      log('  keys.p256dh: ' + (sub.toJSON().keys.p256dh ? 'sim' : 'nao'));
+      log('  keys.auth: ' + (sub.toJSON().keys.auth ? 'sim' : 'nao'));
+    } else {
+      log('Subscription ativa: NAO', 'erro');
+    }
+  } catch (e) {
+    log('Erro getSubscription: ' + e.message, 'erro');
+  }
+
+  // 6) Backend responde?
+  try {
+    const r = await fetch(API + '/api/push/public-key');
+    const d = await r.json();
+    log('Backend public-key: ' + (d.publicKey ? 'OK (' + d.publicKey.length + ' chars)' : 'VAZIO'), d.publicKey ? 'ok' : 'erro');
+  } catch (e) {
+    log('Erro backend: ' + e.message, 'erro');
+  }
+
+  log('=== FIM ===');
+}
+
+async function forcarAtualizacao() {
+  limparLog();
+  log('=== FORCAR ATUALIZACAO DO SW ===');
+
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) {
+      await r.unregister();
+      log('SW desregistrado: ' + r.scope, 'aviso');
+    }
+
+    // Registra de novo
+    const reg = await navigator.serviceWorker.register('sw.js', { scope: './' });
+    log('SW registrado de novo', 'ok');
+
+    // Aguarda ativação
+    if (reg.installing) {
+      log('Aguardando novo SW instalar...');
+      await new Promise((resolve) => {
+        reg.installing.addEventListener('statechange', (e) => {
+          log('  estado: ' + e.target.state);
+          if (e.target.state === 'activated') resolve();
+        });
+      });
+    } else if (reg.active) {
+      log('SW ja ativo');
+    }
+
+    log('Agora faca: Configuracoes do site > Limpar dados > Recarregar', 'aviso');
+  } catch (e) {
+    log('Erro: ' + e.message, 'erro');
+  }
+}
+
+async function reRegistrar() {
+  limparLog();
+  log('=== RE-REGISTRAR SUBSCRIPTION ===');
+
+  try {
+    // 1) Pega public key
+    const r = await fetch(API + '/api/push/public-key');
+    const { publicKey } = await r.json();
+    if (!publicKey) throw new Error('public key nao retornada');
+    log('Public key OK (' + publicKey.length + ' chars)', 'ok');
+
+    // 2) Cancela subscription antiga
+    const reg = await navigator.serviceWorker.ready;
+    const oldSub = await reg.pushManager.getSubscription();
+    if (oldSub) {
+      await oldSub.unsubscribe();
+      log('Subscription antiga cancelada', 'aviso');
+    }
+
+    // 3) Cria nova
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey),
+    });
+    log('Nova subscription criada', 'ok');
+    log('  endpoint: ' + sub.endpoint.substring(0, 60) + '...');
+
+    // 4) Envia para backend
+    const resp = await fetch(API + '/api/push/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        passageiro_id: PASSAGEIRO_ID,
+        viagem_id: 500,
+        perfil: 'PASSAGEIRO',
+        subscription: sub.toJSON(),
+      }),
+    });
+    const data = await resp.json();
+    log('Backend respondeu: ' + JSON.stringify(data), data.sucesso ? 'ok' : 'erro');
+  } catch (e) {
+    log('Erro: ' + e.message, 'erro');
+  }
+}
+
+async function limparTudo() {
+  limparLog();
+  log('=== LIMPAR TUDO ===');
+
+  try {
+    // 1) Cancela subscription
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      await sub.unsubscribe();
+      log('Subscription cancelada', 'aviso');
+    }
+
+    // 2) Desregistra SW
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) {
+      await r.unregister();
+      log('SW desregistrado: ' + r.scope, 'aviso');
+    }
+
+    // 3) Limpa caches
+    if (window.caches) {
+      const keys = await caches.keys();
+      for (const k of keys) {
+        await caches.delete(k);
+        log('Cache deletado: ' + k, 'aviso');
+      }
+    }
+
+    log('TUDO LIMPO. Feche o Chrome completamente e reabra.', 'ok');
+  } catch (e) {
+    log('Erro: ' + e.message, 'erro');
+  }
+}
+
+async function enviarPush() {
+  limparLog();
+  log('=== ENVIAR PUSH DE TESTE ===');
+
+  try {
+    const body = JSON.stringify({ passageiro_id: PASSAGEIRO_ID });
+    const r = await fetch(API + '/api/push/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: body,
+    });
+    const d = await r.json();
+    log('Backend respondeu: ' + JSON.stringify(d), d.sucesso ? 'ok' : 'erro');
+    log('AGORA bloqueie a tela ou saia do Chrome para ver a notificacao', 'aviso');
+  } catch (e) {
+    log('Erro: ' + e.message, 'erro');
+  }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+// Roda diagnóstico ao abrir
+diagnostico();
+</script>
+</body>
+</html>
