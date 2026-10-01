@@ -8,6 +8,7 @@ router.get('/viagens', controller.listarViagens);
 router.get('/viagens/:id/passageiros', controller.passageirosDaViagem);
 router.get('/estatisticas', controller.estatisticas);
 router.get('/linhas', controller.linhas);
+router.get('/linhas-ativas', controller.linhasAtivas);
 router.get('/rotas', controller.rotas);
 router.get('/pontos', controller.pontos);
 router.get('/motoristas', controller.motoristas);

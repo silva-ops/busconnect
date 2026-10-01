@@ -346,3 +346,59 @@ tbody tr:hover { background: #0b1220; }
 html {
   scroll-behavior: smooth;
 }
+
+
+/* ===== Linhas Ativas ===== */
+.lista-linhas-ativas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.card-linha {
+  background: #0b1220;
+  border: 1px solid #1e293b;
+  border-left: 5px solid #38bdf8;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.card-linha .codigo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+
+.card-linha .nome {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.card-linha .info {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.card-linha .info span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-linha .info strong {
+  color: #f1f5f9;
+  font-size: 15px;
+}
+
+/* Cores por linha (aplicadas dinamicamente) */
+.card-linha.linha-3050 { border-left-color: #38bdf8; }
+.card-linha.linha-3050 .codigo { color: #38bdf8; }
+
+.card-linha.linha-3060 { border-left-color: #a78bfa; }
+.card-linha.linha-3060 .codigo { color: #a78bfa; }

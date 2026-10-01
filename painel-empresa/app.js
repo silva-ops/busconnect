@@ -122,6 +122,11 @@ let pontosPorRota = new Map();
 let inicializadoMapa = false;
 let ultimasRotas = new Map();
 
+const CORES_LINHAS = {
+  3050: '#38bdf8',
+  3060: '#7c3aed',
+};
+
 function fmtDuracao(segundos) {
   if (!segundos || segundos < 0) return '-';
   const m = Math.floor(segundos / 60);
@@ -148,11 +153,22 @@ async function inicializarMapaEmpresa() {
   inicializadoMapa = true;
 }
 
-function desenharRota(rotaId, pontos) {
+function desenharRota(rotaId, pontos, linhaCodigo) {
   if (!mapaEmpresa || rotasDesenhadas.has(rotaId)) return;
+
+  // Pega codigo da linha: argumento OU ultimasRotas
+  let codigo = linhaCodigo;
+  if (!codigo && ultimasRotas.has(rotaId)) {
+    codigo = ultimasRotas.get(rotaId).linha_codigo;
+  }
+
+  const cor = (codigo && CORES_LINHAS[codigo]) ? CORES_LINHAS[codigo] : '#38bdf8';
+  console.log('[desenharRota] rota ' + rotaId + ' | codigo ' + codigo + ' | cor ' + cor);
+
   const coords = pontos.map((p) => [p.latitude, p.longitude]);
-  const poly = L.polyline(coords, { color: '#38bdf8', weight: 4, opacity: 0.55, dashArray: '6,6' }).addTo(mapaEmpresa);
+  const poly = L.polyline(coords, { color: cor, weight: 7, opacity: 0.95 }).addTo(mapaEmpresa);
   rotasDesenhadas.set(rotaId, poly);
+
   pontos.forEach((p) => {
     const icon = L.divIcon({
       className: '',
@@ -161,26 +177,81 @@ function desenharRota(rotaId, pontos) {
     });
     L.marker([p.latitude, p.longitude], { icon }).addTo(mapaEmpresa).bindPopup(p.nome);
   });
-  mapaEmpresa.fitBounds(poly.getBounds(), { padding: [30, 30] });
+
+  // So faz zoom na primeira rota (para nao sobrescrever)
+  if (rotasDesenhadas.size === 1) {
+    mapaEmpresa.fitBounds(poly.getBounds(), { padding: [50, 50] });
+  }
 }
 
 async function restaurarRotasConhecidas() {
   if (!mapaEmpresa) return;
+
+  // 1) Rotas ja em memoria (durante uso ativo)
   for (const [rotaId, dados] of ultimasRotas.entries()) {
-    if (!rotasDesenhadas.has(rotaId)) desenharRota(rotaId, dados.pontos);
+    if (!rotasDesenhadas.has(rotaId)) {
+      desenharRota(rotaId, dados.pontos, dados.linha_codigo);
+    }
   }
-  if (ultimasRotas.size === 0) {
+
+  // 2) Se ainda falta alguma rota, busca as viagens recentes do banco
+  if (ultimasRotas.size < 2) {
     try {
       const viagens = await authFetch(URL + '/api/empresa/viagens').then((r) => r.json());
-      if (viagens.length === 0) return;
-      const ultima = viagens[0];
-      const pontos = await authFetch(URL + '/api/viagens/' + ultima.id + '/pontos').then((r) => r.json());
-      if (pontos.length === 0) return;
-      ultimasRotas.set(ultima.rota_id || ultima.id, { viagem_id: ultima.id, pontos });
-      if (!rotasDesenhadas.has(ultima.rota_id || ultima.id)) {
-        desenharRota(ultima.rota_id || ultima.id, pontos);
+
+      // Pega UMA viagem por rota_id (a mais recente)
+      const rotaVista = new Set();
+      const unicas = [];
+      for (const v of viagens) {
+        if (!v.rota_id || rotaVista.has(v.rota_id)) continue;
+        rotaVista.add(v.rota_id);
+        unicas.push(v);
+        if (unicas.length >= 5) break; // limite de 5 rotas
       }
-    } catch (e) { console.error('Erro restaurar rota:', e); }
+
+      for (const v of unicas) {
+        if (rotasDesenhadas.has(v.rota_id)) continue;
+        const pontos = await authFetch(URL + '/api/viagens/' + v.id + '/pontos').then((r) => r.json());
+        if (pontos.length === 0) continue;
+        ultimasRotas.set(v.rota_id, { viagem_id: v.id, pontos, linha_codigo: v.linha_codigo });
+        desenharRota(v.rota_id, pontos, v.linha_codigo);
+      }
+    } catch (e) {
+      console.error('Erro restaurar rota:', e);
+    }
+  }
+}
+
+
+
+// ===== LINHAS ATIVAS =====
+
+async function carregarLinhasAtivas() {
+  try {
+    const linhas = await authFetch(URL + '/api/empresa/linhas-ativas').then((r) => r.json());
+    const container = document.getElementById('linhas-ativas');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (linhas.length === 0) {
+      container.innerHTML = '<div class="viagem-card vazia">Nenhuma linha ativa.</div>';
+      return;
+    }
+
+    linhas.forEach((l) => {
+      const card = document.createElement('div');
+      card.className = 'card-linha linha-' + l.codigo;
+      card.innerHTML =
+        '<div class="codigo">Linha ' + l.codigo + '</div>' +
+        '<div class="nome">' + l.nome + '</div>' +
+        '<div class="info">' +
+          '<span>🚌 <strong>' + l.viagens_ativas + '</strong> onibus</span>' +
+          '<span>👥 <strong>' + l.passageiros_ativos + '</strong> pass.</span>' +
+        '</div>';
+      container.appendChild(card);
+    });
+  } catch (e) {
+    console.error('Erro carregarLinhasAtivas:', e);
   }
 }
 
@@ -226,8 +297,8 @@ async function carregarOnibusAtivos() {
       try {
         const pontos = await authFetch(URL + '/api/viagens/' + a.viagem_id + '/pontos').then((r) => r.json());
         pontosPorRota.set(a.rota_id, pontos);
-        ultimasRotas.set(a.rota_id, { viagem_id: a.viagem_id, pontos });
-        desenharRota(a.rota_id, pontos);
+        ultimasRotas.set(a.rota_id, { viagem_id: a.viagem_id, pontos, linha_codigo: a.linha_codigo });
+        desenharRota(a.rota_id, pontos, a.linha_codigo);
       } catch (e) { console.error('Erro rota:', e); }
     }
   }
@@ -376,6 +447,7 @@ async function atualizarTudo() {
       carregarEstatisticas(),
       carregarFrota(),
       carregarOnibusAtivos(),
+      carregarLinhasAtivas(),
     ]);
   } catch (e) {
     console.error('Erro ao atualizar painel:', e);

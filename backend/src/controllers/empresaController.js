@@ -32,7 +32,7 @@ exports.resumo = async (req, res) => {
 exports.listarViagens = async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT v.id, v.status, v.iniciada_em, v.finalizada_em,
+      `SELECT v.id, v.status, v.iniciada_em, v.finalizada_em, v.rota_id,
               l.codigo AS linha_codigo, l.nome AS linha_nome,
               o.codigo AS onibus_codigo, o.placa AS onibus_placa,
               (SELECT COUNT(*)::int FROM viagens_passageiros WHERE viagem_id = v.id) AS total_passageiros,
@@ -206,6 +206,28 @@ exports.onibusAtivos = async (req, res) => {
     return res.json(rows);
   } catch (e) {
     console.error('[empresaController] Erro onibus-ativos:', e.message);
+    return res.status(500).json({ sucesso: false, mensagem: e.message });
+  }
+};
+
+
+// ===== Linhas com viagens em andamento =====
+exports.linhasAtivas = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT l.id, l.codigo, l.nome,
+              COUNT(DISTINCT v.id)::int AS viagens_ativas,
+              (SELECT COUNT(*)::int FROM viagens_passageiros vp
+                WHERE vp.viagem_id IN (SELECT id FROM viagens WHERE linha_id = l.id AND status = 'EM_ANDAMENTO')
+                AND vp.status <> 'FINALIZADO') AS passageiros_ativos
+       FROM linhas l
+       JOIN viagens v ON v.linha_id = l.id AND v.status = 'EM_ANDAMENTO'
+       GROUP BY l.id, l.codigo, l.nome
+       ORDER BY l.codigo`
+    );
+    return res.json(rows);
+  } catch (e) {
+    console.error('[empresaController] Erro linhas-ativas:', e.message);
     return res.status(500).json({ sucesso: false, mensagem: e.message });
   }
 };

@@ -13,6 +13,7 @@ const passageirosRoutes = require('./routes/passageirosRoutes');
 const empresaRoutes = require('./routes/empresaRoutes');
 const authRoutes = require('./routes/authRoutes');
 const pushRoutes = require('./routes/pushRoutes');
+const linhasRoutes = require('./routes/linhasRoutes');
 
 const app = express();
 app.use(cors());
@@ -34,6 +35,7 @@ app.get('/api/onibus/status', (req, res) => res.json({ status: 'ok', fase: 8 }))
 // Auth (publico)
 app.use('/api/auth', authRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/linhas', linhasRoutes);
 
 // Onibus GPS (publico - o simulador nao tem login)
 app.use('/api/onibus', onibusRoutes);
@@ -65,6 +67,7 @@ httpServer.listen(PORT, () => {
   console.log('[BusConnect] POST /api/passageiros/embarcar pronto');
   console.log('[BusConnect] GET  /api/empresa/* PROTEGIDO por JWT');
   console.log('[BusConnect] POST /api/push/subscribe e /api/push/test prontos');
+  console.log('[BusConnect] GET  /api/linhas pronto');
 });
 
 module.exports = app;
