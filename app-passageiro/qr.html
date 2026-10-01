@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BusConnect - QR Codes</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+    h1 {
+      color: #38bdf8;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .subtitulo {
+      color: #94a3b8;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 900px;
+    }
+    .card {
+      background: #111a2e;
+      border: 2px solid #1e293b;
+      border-radius: 20px;
+      padding: 30px 24px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card.passageiro { border-color: #38bdf8; }
+    .card.motorista { border-color: #fbbf24; }
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+    .card.passageiro h2 { color: #38bdf8; }
+    .card.motorista h2 { color: #fbbf24; }
+    .card p {
+      color: #94a3b8;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .qrcode {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+    .qrcode canvas, .qrcode img {
+      display: block;
+      width: 220px !important;
+      height: 220px !important;
+    }
+    .url {
+      font-size: 11px;
+      color: #64748b;
+      word-break: break-all;
+      font-family: monospace;
+      margin-top: 8px;
+    }
+    .footer {
+      color: #475569;
+      font-size: 12px;
+      text-align: center;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>BusConnect</h1>
+    <p class="subtitulo">Aponte a câmera do celular para o QR Code</p>
+  </div>
+
+  <div class="container">
+    <div class="card passageiro">
+      <h2>📱 App do Passageiro</h2>
+      <p>Acompanhe o ônibus e saiba quando descer</p>
+      <div class="qrcode" id="qr-passageiro"></div>
+      <div class="url" id="url-passageiro"></div>
+    </div>
+
+    <div class="card motorista">
+      <h2>🚌 Painel do Motorista</h2>
+      <p>Receba avisos de desembarque automáticos</p>
+      <div class="qrcode" id="qr-motorista"></div>
+      <div class="url" id="url-motorista"></div>
+    </div>
+  </div>
+
+  <p class="footer">
+    Depois de escanear, adicione o site à tela inicial do celular<br>
+    para virar um ícone de app (Android: menu ⋮ → "Adicionar à tela inicial")
+  </p>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script>
+    const URL_PASSAGEIRO = 'https://busconnect-passageiro.pages.dev';
+    const URL_MOTORISTA = 'https://busconnect-motorista.pages.dev';
+
+    new QRCode(document.getElementById('qr-passageiro'), {
+      text: URL_PASSAGEIRO,
+      width: 220,
+      height: 220,
+      colorDark: '#0f172a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+
+    new QRCode(document.getElementById('qr-motorista'), {
+      text: URL_MOTORISTA,
+      width: 220,
+      height: 220,
+      colorDark: '#0f172a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+
+    document.getElementById('url-passageiro').textContent = URL_PASSAGEIRO;
+    document.getElementById('url-motorista').textContent = URL_MOTORISTA;
+  </script>
+</body>
+</html>
