@@ -438,7 +438,15 @@ async function carregarFrota() {
   render('lista-motoristas', motoristas, (m) => '<span>' + (m.usuario_nome || 'Motorista #' + m.id) + '</span><strong>' + (m.cnh || '-') + '</strong>');
 }
 
+// THROTTLE-ATUALIZAR: evita multiplas chamadas em menos de 3s
+let ultimaAtualizacaoEm = 0;
+const INTERVALO_MINIMO_MS = 3000;
+
 async function atualizarTudo() {
+  const agora = Date.now();
+  if (agora - ultimaAtualizacaoEm < INTERVALO_MINIMO_MS) return;
+  ultimaAtualizacaoEm = agora;
+
   if (!authToken) return;
   try {
     await Promise.all([
@@ -471,7 +479,7 @@ socket.on('disconnect', () => {
   elStatus.classList.remove('ok');
 });
 
-socket.on('viagem:atualizada', () => { if (authToken) atualizarTudo(); });
+socket.on('viagem:atualizada', (d) => { if (!authToken) return; /* throttle interno ja cuida */ atualizarTudo(); });
 socket.on('passageiro:chegou', () => { if (authToken) atualizarTudo(); });
 socket.on('viagem:finalizada', () => { if (authToken) atualizarTudo(); });
 socket.on('onibus:localizacao', (d) => { if (authToken) atualizarOnibusNoMapa(d); });
