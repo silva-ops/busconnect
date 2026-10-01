@@ -13,7 +13,7 @@ const URL = (function detectarBackendURL() {
   // Fallback
   return 'http://localhost:3000';
 })();
-const VIAGEM_ID = 500;
+let VIAGEM_ID = 500;  // valor inicial, substituido ao escolher linha
 const PASSAGEIRO_ID = 10;
 
 // ===== Elementos =====
@@ -49,6 +49,7 @@ let marcadoresPontos = [];
 const telas = {
   inicio: document.getElementById('tela-inicio'),
   recomendado: document.getElementById('tela-recomendado'),
+  linhas: document.getElementById('tela-linhas'),
   viagem: document.getElementById('tela-viagem'),
   aproximando: document.getElementById('tela-aproximando'),
   chegou: document.getElementById('tela-chegou'),
@@ -190,27 +191,38 @@ inputDestino.addEventListener('input', () => {
 btnEncontrar.onclick = async () => {
   if (!destinoSelecionado) { alert('Escolha um destino da lista.'); return; }
 
-  const [viagem, pontos] = await Promise.all([
-    authFetch(URL + '/api/viagens/' + VIAGEM_ID).then((r) => r.json()),
-    authFetch(URL + '/api/viagens/' + VIAGEM_ID + '/pontos').then((r) => r.json()),
-  ]);
+  // 1) Busca as linhas que passam pelo ponto de destino
+  const linhas = await authFetch(URL + '/api/pontos/' + destinoSelecionado.id + '/linhas').then((r) => r.json());
 
-  pontosRota = pontos;
-  indiceDestino = pontosRota.findIndex((p) => p.id === destinoSelecionado.id);
-
-  document.getElementById('rec-linha').textContent = viagem.linha_codigo || '-';
-  document.getElementById('rec-onibus').textContent = viagem.onibus_codigo || '-';
-  document.getElementById('rec-destino').textContent = destinoSelecionado.nome;
-  document.getElementById('rec-embarque').textContent = pontosRota[0].nome;
-  document.getElementById('rec-previsao').textContent = '8 minutos';
-
-  if (mapa) {
-    mapa.remove();
-    mapa = null; marcadorOnibus = null; marcadorDestino = null;
-    linhaRota = null; marcadoresPontos = [];
+  if (linhas.length === 0) {
+    alert('Nenhuma linha disponivel para esse destino.');
+    return;
   }
 
-  mostrarTela('recomendado');
+  // 2) Preenche a tela de linhas
+  document.getElementById('titulo-linhas').textContent = 'Para ' + destinoSelecionado.nome + ':';
+  const lista = document.getElementById('lista-linhas');
+  lista.innerHTML = '';
+
+  linhas.forEach((l) => {
+    const card = document.createElement('div');
+    card.className = 'card-linha-escolha' + (l.codigo === '3060' ? ' linha-3060' : '');
+    card.innerHTML =
+      '<div class="topo">' +
+        '<span class="codigo">Linha ' + l.codigo + '</span>' +
+        '<span class="seta">→</span>' +
+      '</div>' +
+      '<div class="nome">' + l.nome + '</div>' +
+      '<div class="info">' +
+        '<span>🚌 <strong>' + (l.viagens_ativas || 0) + '</strong> ônibus</span>' +
+        '<span>👥 <strong>' + (l.onibus_disponiveis || 0) + '</strong> vagas</span>' +
+      '</div>';
+
+    card.addEventListener('click', () => escolherLinha(l));
+    lista.appendChild(card);
+  });
+
+  mostrarTela('linhas');
 };
 
 btnVoltar.onclick = () => {
@@ -325,6 +337,57 @@ function atualizarPosicaoOnibus(lat, lng) {
 }
 
 // ===== WebSocket =====
+
+
+// ===== ESCOLHER LINHA =====
+async function escolherLinha(linha) {
+  console.log('[linha] escolhida:', linha.codigo);
+
+  // 1) Busca as viagens ativas da linha
+  const viagens = await authFetch(URL + '/api/linhas/' + linha.id + '/viagens-ativas').then((r) => r.json());
+
+  if (viagens.length === 0) {
+    alert('Nenhum ônibus em operação nessa linha agora.');
+    return;
+  }
+
+  const viagem = viagens[0];  // pega a primeira em operacao
+  VIAGEM_ID = viagem.viagem_id;
+
+  // 2) Busca os detalhes da viagem + pontos
+  const [viagemDetalhes, pontos] = await Promise.all([
+    authFetch(URL + '/api/viagens/' + VIAGEM_ID).then((r) => r.json()),
+    authFetch(URL + '/api/viagens/' + VIAGEM_ID + '/pontos').then((r) => r.json()),
+  ]);
+
+  pontosRota = pontos;
+  indiceDestino = pontosRota.findIndex((p) => p.id === destinoSelecionado.id);
+
+  document.getElementById('rec-linha').textContent = viagemDetalhes.linha_codigo || linha.codigo || '-';
+  document.getElementById('rec-onibus').textContent = viagemDetalhes.onibus_codigo || viagem.onibus_codigo || '-';
+  document.getElementById('rec-destino').textContent = destinoSelecionado.nome;
+  document.getElementById('rec-embarque').textContent = pontosRota[0].nome;
+  document.getElementById('rec-previsao').textContent = '8 minutos';
+
+  // Limpa o mapa para nova viagem
+  if (mapa) {
+    mapa.remove();
+    mapa = null;
+    marcadorOnibus = null;
+    marcadorDestino = null;
+    linhaRota = null;
+    marcadoresPontos = [];
+  }
+
+  mostrarTela('recomendado');
+}
+
+// Botao voltar da tela de linhas
+const btnVoltarDestino = document.getElementById('btn-voltar-destino');
+if (btnVoltarDestino) {
+  btnVoltarDestino.addEventListener('click', () => mostrarTela('inicio'));
+}
+
 function conectarWebSocket() {
   if (socket) return;
   socket = io(URL);
