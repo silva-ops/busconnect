@@ -19,6 +19,21 @@ function gerarToken(usuario) {
   );
 }
 
+// ===== Helper: obter ou criar passageiro para um usuario =====
+async function obterOuCriarPassageiro(usuarioId) {
+  const { rows } = await pool.query(
+    'SELECT id FROM passageiros WHERE usuario_id = $1',
+    [usuarioId]
+  );
+  if (rows.length > 0) return rows[0].id;
+
+  const insert = await pool.query(
+    'INSERT INTO passageiros (usuario_id) VALUES ($1) RETURNING id',
+    [usuarioId]
+  );
+  return insert.rows[0].id;
+}
+
 // ===== POST /api/auth/registro =====
 exports.registrar = async (req, res) => {
   try {
@@ -51,7 +66,17 @@ exports.registrar = async (req, res) => {
     const usuario = rows[0];
     const token = gerarToken(usuario);
 
-    return res.status(201).json({ sucesso: true, usuario, token });
+    // Se for PASSAGEIRO, cria registro em passageiros automaticamente
+    let passageiroId = null;
+    if (perfil === 'PASSAGEIRO') {
+      passageiroId = await obterOuCriarPassageiro(usuario.id);
+    }
+
+    return res.status(201).json({
+      sucesso: true,
+      usuario: { ...usuario, passageiro_id: passageiroId },
+      token,
+    });
   } catch (e) {
     console.error('[authController] Erro registrar:', e.message);
     return res.status(500).json({ sucesso: false, mensagem: e.message });
@@ -83,6 +108,12 @@ exports.login = async (req, res) => {
 
     const token = gerarToken(usuario);
 
+    // Se for PASSAGEIRO, retorna (e cria se nao existir) o passageiro_id
+    let passageiroId = null;
+    if (usuario.perfil === 'PASSAGEIRO' || usuario.perfil === 'ADMINISTRADOR') {
+      passageiroId = await obterOuCriarPassageiro(usuario.id);
+    }
+
     return res.json({
       sucesso: true,
       usuario: {
@@ -90,6 +121,7 @@ exports.login = async (req, res) => {
         nome: usuario.nome,
         email: usuario.email,
         perfil: usuario.perfil,
+        passageiro_id: passageiroId,
       },
       token,
     });
@@ -109,7 +141,18 @@ exports.me = async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ sucesso: false, mensagem: 'Usuario nao encontrado' });
     }
-    return res.json({ sucesso: true, usuario: rows[0] });
+
+    const usuario = rows[0];
+
+    let passageiroId = null;
+    if (usuario.perfil === 'PASSAGEIRO' || usuario.perfil === 'ADMINISTRADOR') {
+      passageiroId = await obterOuCriarPassageiro(usuario.id);
+    }
+
+    return res.json({
+      sucesso: true,
+      usuario: { ...usuario, passageiro_id: passageiroId },
+    });
   } catch (e) {
     console.error('[authController] Erro me:', e.message);
     return res.status(500).json({ sucesso: false, mensagem: e.message });

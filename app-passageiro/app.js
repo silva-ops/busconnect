@@ -14,7 +14,7 @@ const URL = (function detectarBackendURL() {
   return 'http://localhost:3000';
 })();
 let VIAGEM_ID = 500;  // valor inicial, substituido ao escolher linha
-const PASSAGEIRO_ID = 10;
+let PASSAGEIRO_ID = null;  // preenchido no login
 
 // ===== Elementos =====
 const elTelaLogin = document.getElementById('tela-login');
@@ -30,6 +30,12 @@ try {
   const u = localStorage.getItem('busconnect_usuario_pass');
   if (u) usuarioAtual = JSON.parse(u);
 } catch (e) { usuarioAtual = null; }
+
+// Restaura passageiro_id do usuario logado (persistido no localStorage)
+if (usuarioAtual && usuarioAtual.passageiro_id) {
+  PASSAGEIRO_ID = usuarioAtual.passageiro_id;
+  console.log('[init] PASSAGEIRO_ID restaurado:', PASSAGEIRO_ID);
+}
 
 let todosPontos = [];
 let destinoSelecionado = null;
@@ -71,6 +77,7 @@ function esconderLogin() {
   elTelaLogin.classList.add('escondido');
 }
 function limparSessao() {
+  PASSAGEIRO_ID = null;
   authToken = null;
   usuarioAtual = null;
   localStorage.removeItem('busconnect_token_pass');
@@ -122,6 +129,13 @@ elFormLogin.addEventListener('submit', async (e) => {
 
     authToken = d.token;
     usuarioAtual = d.usuario;
+    // Captura o passageiro_id retornado pelo backend
+    if (d.usuario.passageiro_id) {
+      PASSAGEIRO_ID = d.usuario.passageiro_id;
+      console.log('[login] passageiro_id =', PASSAGEIRO_ID);
+    } else {
+      console.log('[login] AVISO: passageiro_id nao veio do backend');
+    }
     localStorage.setItem('busconnect_token_pass', authToken);
     localStorage.setItem('busconnect_usuario_pass', JSON.stringify(usuarioAtual));
 
@@ -240,6 +254,10 @@ btnEmbarcar.addEventListener('click', () => {
 }, { once: false });
 
 btnEmbarcar.onclick = async () => {
+  if (!PASSAGEIRO_ID) {
+    alert('Erro: passageiro_id nao disponivel. Faca login novamente.');
+    return;
+  }
   btnEmbarcar.disabled = true;
   btnEmbarcar.textContent = 'EMBARCANDO...';
 
