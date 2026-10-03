@@ -433,15 +433,18 @@ function conectarWebSocket() {
   });
 
   socket.on('passageiro:destino_proximo', (d) => {
-    console.log('[DEBUG-BC] destino_proximo recebido', JSON.stringify(d));
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
+
+    // NAO troca de tela. Apenas mostra o banner no topo.
     tocarSomAviso("atencao");
-      notificarViaSW("⚠️ ATENÇÃO", "Seu destino está próximo. Prepare-se para desembarcar.", [200, 100, 200], false);
-    mostrarTela('aproximando');
+    notificarViaSW("⚠️ ATENÇÃO", "Seu destino está próximo. Prepare-se para desembarcar.", [200, 100, 200], false);
+
+    mostrarBannerAproximando(d.ponto_nome || 'Destino');
   });
 
   socket.on('passageiro:chegou', (d) => {
+ esconderBannerAproximando();
     console.log('[DEBUG-BC] chegou recebido', JSON.stringify(d));
     if (!embarcou) return;
     if (d.passageiro_id !== PASSAGEIRO_ID) return;
@@ -631,6 +634,32 @@ function notificarViaSW(titulo, corpo, vibrar, persistente) {
 
 // Registra o SW assim que o app carrega
 registrarServiceWorker();
+
+
+
+// ===== BANNER DE APROXIMACAO =====
+function mostrarBannerAproximando(nomePonto) {
+  const banner = document.getElementById('banner-aproximando');
+  if (!banner) return;
+
+  const texto = document.getElementById('banner-texto');
+  if (texto) {
+    texto.textContent = 'Seu destino está próximo: ' + nomePonto;
+  }
+
+  banner.classList.remove('escondido');
+  console.log('[banner] aproximando exibido para', nomePonto);
+
+  // Vibra de novo apos 3s (reforco)
+  setTimeout(() => {
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  }, 3000);
+}
+
+function esconderBannerAproximando() {
+  const banner = document.getElementById('banner-aproximando');
+  if (banner) banner.classList.add('escondido');
+}
 
 // ===== Inicializacao =====
 if (authToken) {

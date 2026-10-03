@@ -593,3 +593,58 @@ html {
   color: #64748b;
   font-size: 20px;
 }
+
+
+/* ===== Banner ATENÇÃO (flutuante no topo) ===== */
+.banner-aproximando {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #78350f, #b45309);
+  border-bottom: 3px solid #fbbf24;
+  box-shadow: 0 6px 24px rgba(251, 191, 36, 0.5);
+  animation: bannerSlideDown 0.4s ease-out, bannerPulse 1.6s ease-in-out infinite;
+}
+.banner-aproximando.escondido { display: none; }
+
+.banner-aproximando .icone {
+  font-size: 30px;
+  flex-shrink: 0;
+  animation: iconePulsa 1.2s ease-in-out infinite;
+}
+.banner-aproximando .texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.banner-aproximando .texto strong {
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: #fbbf24;
+  font-weight: 900;
+}
+.banner-aproximando .texto span {
+  font-size: 13px;
+  color: #fef3c7;
+  line-height: 1.3;
+}
+
+@keyframes bannerSlideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes bannerPulse {
+  0%, 100% { background: linear-gradient(135deg, #78350f, #b45309); }
+  50%      { background: linear-gradient(135deg, #92400e, #d97706); }
+}
+@keyframes iconePulsa {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.15); }
+}
