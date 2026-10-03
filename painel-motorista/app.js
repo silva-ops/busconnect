@@ -273,6 +273,18 @@ socket.on('motorista:aviso_desembarque', (d) => {
   marcarDestino(d.ponto_id);
 });
 
+socket.on('viagem:finalizada', (d) => {
+  if (!authToken) return;
+  elNomePonto.textContent = 'Viagem finalizada';
+  elInfoPass.textContent = 'Todos os passageiros desembarcaram.';
+  elProxima.classList.remove('aproximando');
+  elProxima.classList.add('aviso');
+  elPassageirosAtivos.textContent = '0';
+  tocarSomMotorista();
+  notificarViaSWMot('🏁 VIAGEM FINALIZADA', 'Todos os passageiros desembarcaram.', [400, 150, 400]);
+  log('VIAGEM FINALIZADA', true);
+});
+
 // ===== Inicialização =====
 
 
