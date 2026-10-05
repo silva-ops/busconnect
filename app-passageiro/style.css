@@ -650,4 +650,4 @@ html {
 }
 
 /* AUTO-UPDATE TESTE */
-.splash-marca::after { content: " v3"; font-size: 14px; opacity: 0.5; }
+.splash-marca::after { content: " v4"; font-size: 14px; opacity: 0.5; }
