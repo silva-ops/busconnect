@@ -1,7 +1,7 @@
 // Service Worker - BusConnect v2
 // Cache + auto-update + push
 
-const SW_VERSION = 'busconnect-v2';
+const SW_VERSION = 'busconnect-v3';
 const CACHE_STATIC = SW_VERSION + '-static';
 const CACHE_IMAGES = SW_VERSION + '-images';
 
