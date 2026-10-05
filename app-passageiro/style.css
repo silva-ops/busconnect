@@ -648,3 +648,6 @@ html {
   0%, 100% { transform: scale(1); }
   50%      { transform: scale(1.15); }
 }
+
+/* AUTO-UPDATE TESTE */
+.splash-marca::after { content: " v3"; font-size: 14px; opacity: 0.5; }
