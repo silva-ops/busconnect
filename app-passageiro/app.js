@@ -661,6 +661,38 @@ function esconderBannerAproximando() {
   if (banner) banner.classList.add('escondido');
 }
 
+
+// ===== AUTO-UPDATE via Service Worker =====
+// Quando o Service Worker novo assume o controle, recarrega o app
+// automaticamente para que o usuario veja a versao mais recente.
+let swRefreshing = false;
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (swRefreshing) return;
+    swRefreshing = true;
+    console.log('[sw] controllerchange - recarregando app');
+
+    // Se estiver no meio de uma viagem, adia o reload
+    if (typeof embarcou !== 'undefined' && embarcou) {
+      console.log('[sw] viagem em andamento, reload adiado');
+      window.__recarregarAposViagem = true;
+      return;
+    }
+
+    window.location.reload();
+  });
+}
+
+// Tambem escuta a mensagem direta do SW (redundancia)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    const data = event.data;
+    if (data && data.tipo === 'SW_UPDATED') {
+      console.log('[sw] SW_UPDATED recebido, versao:', data.versao);
+    }
+  });
+}
+
 // ===== Inicializacao =====
 if (authToken) {
   esconderLogin();
