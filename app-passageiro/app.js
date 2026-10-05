@@ -662,6 +662,36 @@ function esconderBannerAproximando() {
 }
 
 
+
+// ===== VERIFICACAO PERIODICA DE SW =====
+// O navegador so checa por SW novo em navegacao ou a cada 24h.
+// Forcamos checagem: (1) a cada 2 min, (2) quando a aba ganha foco.
+async function verificarAtualizacaoSW() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return;
+    await reg.update();
+    console.log('[sw] verificacao de update executada');
+  } catch (e) {
+    console.warn('[sw] erro ao verificar update:', e.message);
+  }
+}
+
+// (1) A cada 2 minutos
+setInterval(verificarAtualizacaoSW, 2 * 60 * 1000);
+
+// (2) Quando a aba ganha foco (usuario volta pro app)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    console.log('[sw] aba visivel - verificando update');
+    verificarAtualizacaoSW();
+  }
+});
+
+// (3) Uma vez no carregamento
+setTimeout(verificarAtualizacaoSW, 3000);
+
 // ===== AUTO-UPDATE via Service Worker =====
 // Quando o Service Worker novo assume o controle, recarrega o app
 // automaticamente para que o usuario veja a versao mais recente.
